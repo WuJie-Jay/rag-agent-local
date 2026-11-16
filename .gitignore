@@ -1,0 +1,50 @@
+# Python 缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 向量库数据（本地生成，无需上传）
+chroma_db/
+*.parquet
+
+# 测试数据（可选，若不想上传测试文档可保留）
+# data/*.pdf
+# data/*.md
+
+# Pycharm IDE 配置
+.idea/
+*.iml
+
+# 虚拟环境
+venv/
+env/
+.conda/
+
+# 环境变量与密钥
+.env
+.env.local
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp

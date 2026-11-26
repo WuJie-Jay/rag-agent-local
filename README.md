@@ -96,7 +96,7 @@ uvicorn api.app:app --host 0.0.0.0 --port 8000 --reload
 ### 6. 命令行模式
 也可以直接通过命令行体验全部功能：
 ```bash
-python app.py
+python app_cmd.py
 ```
 支持三种模式：
 1. 构建知识库

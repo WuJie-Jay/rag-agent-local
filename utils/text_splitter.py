@@ -3,24 +3,35 @@ from langchain_core.documents import Document
 from utils.document_loader import load_document
 
 
-def split_documents(
-        documents: list[Document],
-        chunk_size: int = 500,
-        chunk_overlap: int = 50
-) -> list[Document]:
-    """
-    对文档列表进行递归字符分块
-    """
-    splitter = RecursiveCharacterTextSplitter(
+# def split_documents(
+#         documents: list[Document],
+#         chunk_size: int = 500,
+#         chunk_overlap: int = 50
+# ) -> list[Document]:
+#     """
+#     对文档列表进行递归字符分块
+#     """
+#     splitter = RecursiveCharacterTextSplitter(
+#         chunk_size=chunk_size,
+#         chunk_overlap=chunk_overlap,
+#         separators=["\n\n", "\n", "。", "！", "？", " ", ""],  # 中文优化分隔符
+#         length_function=len  # 按字符数计算长度
+#     )
+#
+#     chunks = splitter.split_documents(documents)
+#     print(f"分块完成：原始 {len(documents)} 段 → 分块后 {len(chunks)} 块")
+#     return chunks
+
+
+def split_documents(docs, chunk_size=800, chunk_overlap=100):
+    text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        separators=["\n\n", "\n", "。", "！", "？", " ", ""],  # 中文优化分隔符
-        length_function=len  # 按字符数计算长度
+        separators=["\n## ", "\n### ", "\n#### ", "\n\n", "\n", "。", "，", " ", ""],
+        length_function=len,
+        is_separator_regex=False
     )
-
-    chunks = splitter.split_documents(documents)
-    print(f"分块完成：原始 {len(documents)} 段 → 分块后 {len(chunks)} 块")
-    return chunks
+    return text_splitter.split_documents(docs)
 
 
 def run_split_experiment(documents: list[Document]):

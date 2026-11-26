@@ -4,6 +4,7 @@ import re
 from langchain_ollama import OllamaLLM
 from utils.rag_base import rag_answer
 
+_current_chat_history = None
 
 # ========== 1. 定义基础工具 ==========
 @tool
@@ -32,8 +33,21 @@ def knowledge_base_qa(question: str) -> str:
     参数 question 为用户的问题字符串。
     """
     print(f"\n[工具调试] 收到问题：{question}")
+    if _current_chat_history:
+        from utils.rag_base import rewrite_query
+        rewritten = rewrite_query(question, _current_chat_history)
+        print(f"[调试] 改写后检索问句：{rewritten}")
+
     try:
-        answer = rag_answer(question, collection_name="test_kb")
+        # ========== 新增改动2：开启查询改写，透传对话历史 ==========
+        answer = rag_answer(
+            question,
+            collection_name="test_kb",
+            mode="ensemble",
+            enable_rewrite=True,
+            history=_current_chat_history
+        )
+
         if not answer or "未提及相关内容" in answer:
             return "【知识库无结果】参考资料中未提及相关内容"
         return f"【知识库查询成功】{answer}"
@@ -102,7 +116,7 @@ system_prompt = build_react_prompt(tools)
 
 # ========== 4. 解析模型输出，提取Action ==========
 def parse_action(response: str):
-    # ========== 新增：强制截断，Observation及之后的幻觉内容全部丢弃 ==========
+    # ========== 强制截断，Observation及之后的幻觉内容全部丢弃 ==========
     obs_index = response.find("Observation:")
     if obs_index != -1:
         response = response[:obs_index].strip()
@@ -131,11 +145,16 @@ def parse_action(response: str):
 
 
 # ========== 5. ReAct 主循环 ==========
-def run_react_agent(user_input: str, max_steps: int = 5):
+# ========== 增加 chat_history 入参，透传给知识库工具 ==========
+def run_react_agent(user_input: str, max_steps: int = 5, chat_history: list = None):
     """
     ReAct Agent 主函数
     max_steps: 最大循环步数，防止死循环
+    chat_history: 多轮对话历史，格式 [{"role":"user","content":"..."}, ...]
     """
+    global _current_chat_history
+    _current_chat_history = chat_history
+
     # 初始化对话历史
     history = f"System: {system_prompt}\n\nUser: {user_input}\n"
     step = 0
@@ -180,7 +199,7 @@ def run_react_agent(user_input: str, max_steps: int = 5):
 
 # ========== 测试 ==========
 if __name__ == "__main__":
-    question = "相比模型微调方案，RAG 技术有哪些核心优势？"
+    question = "中文场景下分块推荐参数是多少？"
     answer = run_react_agent(question)
     print("\n=== 最终输出 ===")
     print(answer)
